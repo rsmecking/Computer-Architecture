@@ -7,7 +7,26 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.running = True
+        self.pc = 0
+        self.registers = [0] * 8
+
+    def ram_read(self, mar): 
+        """
+         Memory Address Register (MAR)
+         Contains the address that is being read or written to
+
+        """
+        return self.ram[mar]
+
+    def ram_write(self, mar, mdr):
+        """
+        Memory Data Register (MDR)
+        Contains the data that was read or the data to write
+        """
+        self.ram[mar] = mdr
+        return self.ram[mar]        
 
     def load(self):
         """Load a program into memory."""
@@ -62,4 +81,15 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+        # https://github.com/rsmecking/Computer-Architecture/blob/master/LS8-spec.md
+        HLT = 0b00000001
+        LDI = 0b10000010
+        PRN = 0b01000111
+        
+        while self.running:
+            cmd = self.ram_read()
+
+            if cmd == HLT:
+                self.running = False
+        
