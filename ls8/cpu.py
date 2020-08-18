@@ -8,15 +8,14 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
-        self.running = True
         self.pc = 0
-        self.registers = [0] * 8
+        self.reg = [0] * 8
+        self.op_size = 0
 
     def ram_read(self, mar): 
         """
          Memory Address Register (MAR)
          Contains the address that is being read or written to
-
         """
         return self.ram[mar]
 
@@ -48,6 +47,7 @@ class CPU:
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+        # print(self.ram)
 
 
     def alu(self, op, reg_a, reg_b):
@@ -87,9 +87,28 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         
-        while self.running:
-            cmd = self.ram_read()
-
+        running = True
+        while running:
+            cmd = self.ram_read(self.op_size)
+            operand_a = self.ram[self.pc + 1]
+            operand_b = self.ram[self.pc + 2]
+            
+            # Halt the CPU (and exit the emulator).
             if cmd == HLT:
-                self.running = False
+                running = False                
+                self.op_size += 1
+            
+            # Print numeric value stored in the given register. 
+            # Print to the console the decimal integer value that is stored in the given register.
+            elif cmd == PRN:                
+                print(self.reg[operand_a])
+                self.op_size += 2
+                
+            # Set the value of a register to an integer.
+            elif cmd == LDI:
+                self.reg[operand_a] = operand_b
+                self.op_size += 3
         
+        # self.pc += self.op_size
+
+
