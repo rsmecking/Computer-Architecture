@@ -7,10 +7,11 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        self.running = True
         self.ram = [0] * 256
         self.pc = 0
         self.reg = [0] * 8
-        self.op_size = 0
+        self.op_size = 1
 
     def ram_read(self, mar): 
         """
@@ -27,27 +28,43 @@ class CPU:
         self.ram[mar] = mdr
         return self.ram[mar]        
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
+        try:
+            address = 0
+            with open(filename) as f:
+                for line in f:
+                    comment_split = line.split("#")
+                    n = comment_split[0].strip()
 
-        address = 0
+                    if n == '':
+                        continue
+                    
+                    val = int(n, 2)
+                    self.ram[address] = val
 
-        # For now, we've just hardcoded a program:
+                    address +=1
+        
+        except FileNotFoundError:
+            print(f"{sys.argv[0]}: {filename} not found")
+            sys.exit(2)
+        # address = 0
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # # For now, we've just hardcoded a program:
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-        # print(self.ram)
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -77,8 +94,6 @@ class CPU:
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
 
-        print()
-
     def run(self):
         """Run the CPU."""
 
@@ -86,29 +101,34 @@ class CPU:
         HLT = 0b00000001
         LDI = 0b10000010
         PRN = 0b01000111
-        
-        running = True
-        while running:
-            cmd = self.ram_read(self.op_size)
+        MUL = 0b10100010
+
+        while self.running:
+            cmd = self.ram_read(self.pc)
             operand_a = self.ram[self.pc + 1]
             operand_b = self.ram[self.pc + 2]
             
             # Halt the CPU (and exit the emulator).
             if cmd == HLT:
-                running = False                
-                self.op_size += 1
+                self.running = False                
+                self.op_size = 1
             
             # Print numeric value stored in the given register. 
             # Print to the console the decimal integer value that is stored in the given register.
             elif cmd == PRN:                
                 print(self.reg[operand_a])
-                self.op_size += 2
+                self.op_size = 2
                 
             # Set the value of a register to an integer.
             elif cmd == LDI:
                 self.reg[operand_a] = operand_b
-                self.op_size += 3
+                self.op_size = 3
+
+            # Multiply the values in two registers together and store the result in registerA.
+            elif cmd == MUL:
+                self.reg[operand_a] *= self.reg[operand_b]
+                self.op_size = 3
         
-        # self.pc += self.op_size
+            self.pc += self.op_size
 
 
