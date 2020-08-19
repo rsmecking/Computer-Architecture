@@ -102,6 +102,11 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
+
+        SP = 7
+        self.reg[SP] = 244
 
         while self.running:
             cmd = self.ram_read(self.pc)
@@ -128,7 +133,22 @@ class CPU:
             elif cmd == MUL:
                 self.reg[operand_a] *= self.reg[operand_b]
                 self.op_size = 3
-        
-            self.pc += self.op_size
 
+            # Push the value in the given register on the stack.
+                # Decrement the SP.
+                # Copy the value in the given register to the address pointed to by SP.
+            elif cmd == PUSH:
+                self.reg[SP] -= 1
+                self.ram[self.reg[SP]] = self.reg[operand_a]
+                self.op_size = 2
+
+            # Pop the value at the top of the stack into the given register.
+                # Copy the value from the address pointed to by SP to the given register.
+                # Increment SP. 
+            elif cmd == POP:
+                self.reg[operand_a] = self.ram[self.reg[SP]]
+                self.reg[SP] += 1
+                self.op_size = 2
+
+            self.pc += self.op_size
 
