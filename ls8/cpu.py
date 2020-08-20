@@ -11,7 +11,7 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.reg = [0] * 8
-        self.op_size = 1
+        self.op_size = 0
 
     def ram_read(self, mar): 
         """
@@ -48,24 +48,6 @@ class CPU:
         except FileNotFoundError:
             print(f"{sys.argv[0]}: {filename} not found")
             sys.exit(2)
-        # address = 0
-
-        # # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
-
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -104,9 +86,13 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
+        CALL = 0b01010000
+        RET = 0b00010001
+        ADD = 0b10100000
 
         SP = 7
-        self.reg[SP] = 244
+        self.reg[SP] = 0xf4
+        
 
         while self.running:
             cmd = self.ram_read(self.pc)
@@ -127,7 +113,7 @@ class CPU:
             # Set the value of a register to an integer.
             elif cmd == LDI:
                 self.reg[operand_a] = operand_b
-                self.op_size = 3
+                self.op_size = 3 
 
             # Multiply the values in two registers together and store the result in registerA.
             elif cmd == MUL:
@@ -149,6 +135,30 @@ class CPU:
                 self.reg[operand_a] = self.ram[self.reg[SP]]
                 self.reg[SP] += 1
                 self.op_size = 2
+            
+            # Calls a subroutine (function) at the address stored in the register
+            elif cmd == CALL:
+                self.reg[SP] -= 1
+                self.ram[self.reg[SP]] = self.pc + 2
+                self.pc = self.reg[operand_a]
+                
+                self.op_size = 0
+
+            # Return from subroutine.
+            # Pop the value from the top of the stack and store it in the PC.
+            elif cmd == RET:
+                self.pc = self.ram[self.reg[SP]]
+                self.reg[SP] += 1
+                self.op_size = 0
+
+            # Add the value in two registers and store the result in registerA.
+            elif cmd == ADD:
+                self.reg[operand_a] += self.reg[operand_b]
+                self.op_size = 3
+
+            else:
+                print(f"Invalid Instruction: {cmd}")
+                running = False
 
             self.pc += self.op_size
 
