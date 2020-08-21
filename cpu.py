@@ -111,35 +111,31 @@ class CPU:
             # Halt the CPU (and exit the emulator).
             if cmd == HLT:
                 self.running = False                
-                # self.op_size = (cmd >> 6) + 1
+                self.op_size = (cmd >> 6) + 1
             
             # Print numeric value stored in the given register. 
             # Print to the console the decimal integer value that is stored in the given register.
             elif cmd == PRN:                
-                print(self.reg[operand_a])
-                self.pc += 2
-                # self.op_size = (cmd >> 6) + 1
+                print("PRN", self.reg[operand_a])
+                self.op_size = (cmd >> 6) + 1
 
             # Print alpha character value stored in the given register.
             # Print to the console the ASCII character corresponding to the value in the register.
             elif cmd == PRA:
                 print(self.reg[operand_a])
-                # self.op_size = (cmd >> 6) + 1
-                self.pc += 2
+                self.op_size = (cmd >> 6) + 1
     
             # Set the value of a register to an integer.
             elif cmd == LDI:
                 self.reg[operand_a] = operand_b
-                # print("Operand_a is", operand_a)
-                # print("Operand_b is", operand_b)
-                self.pc += 3
-                # self.op_size = (cmd >> 6) + 1 
+                print("Operand_a is", operand_a)
+                print("Operand_b is", operand_b)
+                self.op_size = (cmd >> 6) + 1 
 
             # Multiply the values in two registers together and store the result in registerA.
             elif cmd == MUL:
                 self.reg[operand_a] *= self.reg[operand_b]
-                # self.op_size = (cmd >> 6) + 1
-                self.pc += 3
+                self.op_size = (cmd >> 6) + 1
 
             # Decrement (subtract 1 from) the value in the given register.
             elif cmd == DEC:
@@ -162,8 +158,7 @@ class CPU:
             elif cmd == PUSH:
                 self.reg[SP] -= 1
                 self.ram[self.reg[SP]] = self.reg[operand_a]
-                # self.op_size = (cmd >> 6) + 1
-                self.pc += 2
+                self.op_size = (cmd >> 6) + 1
 
             # Pop the value at the top of the stack into the given register.
                 # Copy the value from the address pointed to by SP to the given register.
@@ -171,28 +166,26 @@ class CPU:
             elif cmd == POP:
                 self.reg[operand_a] = self.ram[self.reg[SP]]
                 self.reg[SP] += 1
-                # self.op_size = (cmd >> 6) + 1
-                self.pc += 2
+                self.op_size = (cmd >> 6) + 1
             
             # Calls a subroutine (function) at the address stored in the register
             elif cmd == CALL:
                 self.reg[SP] -= 1
                 self.ram[self.reg[SP]] = self.pc + 2
                 self.pc = self.reg[operand_a]
-                # self.op_size = 0
+                self.op_size = 0
 
             # Return from subroutine.
             # Pop the value from the top of the stack and store it in the PC.
             elif cmd == RET:
                 self.pc = self.ram[self.reg[SP]]
                 self.reg[SP] += 1
-                # self.op_size = 0
+                self.op_size = 0
 
             # Add the value in two registers and store the result in registerA.
             elif cmd == ADD:
                 self.reg[operand_a] += self.reg[operand_b]
-                # self.op_size = (cmd >> 6) + 1
-                self.pc += 3
+                self.op_size = (cmd >> 6) + 1
 
             # Compare the values in two registers.
                 # If they are equal, set the Equal E flag to 1, otherwise set it to 0.
@@ -201,41 +194,44 @@ class CPU:
             elif cmd == CMP: # 00000LGE
                 if self.reg[operand_a] == self.reg[operand_b]: 
                     self.fl = 0b0000001 # E
-                    # print("CMP = E")
+                    print("CMP = E")
                 elif self.reg[operand_a] < self.reg[operand_b]: 
                     self.fl = 0b0000100 # L
-                    # print("CMP = L")
+                    print("CMP = L")
                 elif self.reg[operand_a] > self.reg[operand_b]: 
                     self.fl = 0b0000010 # G
-                    # print("CMP = G")
-                self.pc += 3
+                    print("CMP = G")
+                self.op_size = (cmd >> 6) + 1
+                    
                 
+            
             # If equal flag is set (true), jump to the address stored in the given register.
             elif cmd == JEQ:
                 if self.fl & 0b00000001:
                     self.pc = self.reg[operand_a]
-                    # print("JEQ")
+                    print("JEQ")
                 else:
-                    self.pc += 2
+                    self.op_size = (cmd >> 6) + 1
                 # self.op_size = (cmd >> 6) + 1
 
             # If E flag is clear (false, 0), jump to the address stored in the given register.
             elif cmd == JNE:
                 if not self.fl & 0b00000001:
                     self.pc = self.reg[operand_a]
-                    # print("JNE")
+                    print("JNE")
                 else:
-                    self.pc += 2
+                    self.op_size = (cmd >> 6) + 1
                 # self.op_size = (cmd >> 6) + 1
 
             # Jump to the address stored in the given register.
             # Set the PC to the address stored in the given register.
             elif cmd == JMP:
                 self.pc = self.reg[operand_a]
-                # print('JMP')
+                print('JMP')
 
             else:
                 print(f"Invalid Instruction: {cmd}")
                 running = False
 
-            # self.pc += self.op_size
+            self.pc += self.op_size
+
